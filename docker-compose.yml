@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  app1:
+    build: ./app
+    container_name: app1
+    depends_on:
+      - mongo
+    ports:
+      - "4000:3000" # Expose for Single Node Baseline Test
+
+  app2:
+    build: ./app
+    container_name: app2
+    depends_on:
+      - mongo
+    # No ports exposed directly; Nginx handles routing
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_lb
+    ports:
+      - "4001:80" # Expose for Distributed Load Balancer Test
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - app1
+      - app2
+
+volumes:
+  mongo_data:
